@@ -9,25 +9,9 @@ let memory = Array(4096).fill(0x00)
 
 // CPU registers (V0..V15 - 1 byte each)
 let V = Array(16).fill(0x00)
-// let V0 = 0x00
-// let V1 = 0x00
-// let V2 = 0x00
-// let V3 = 0x00
-// let V4 = 0x00
-// let V5 = 0x00
-// let V6 = 0x00
-// let V7 = 0x00
-// let V8 = 0x00
-// let V9 = 0x00
-// let VA = 0x00
-// let VB = 0x00
-// let VC = 0x00
-// let VD = 0x00
-// let VE = 0x00
-// let VF = 0x00
 
 // index register
-let I = 0x000
+let I = 0x200 // @TODO sometimes breaks at 0x000
 
 // program counter
 let pc = 0x200
@@ -36,6 +20,7 @@ let pc = 0x200
 let stack = Array(16).fill(0x000)
 let sp = 0x0
 
+// draw flag indicates when redraw needs to happen
 let drawFlag = 0x0
 
 // timer registers (60 Hz)
@@ -43,19 +28,51 @@ let DT = 0x00
 let ST = 0x00
 
 // @TODO extract display logic elsewhere
-let gfx = Array(64).fill(Array(32).fill(0x0))
+let gfx = Array(64 * 32).fill(0x0)
 
 // @TODO extract input logic elsewhere
 let keys = Array(16).fill(0x0)
 
-const load = rom => {
-  const len = rom.length
+// load data into the memory
+const load = (data, offset = 0x0) => {
+  const len = data.length
   for (let i = 0; i < len; i++) {
-    memory[0x200 + i] = rom[i]
+    memory[offset + i] = data[i]
   }
 }
 
+const MEM_OFFSET_BIOS = 0x0
+const MEM_OFFSET_FONT = 0x050
+const MEM_OFFSET_ROM = 0x200
+
+// helper load functions with preset offsets
+const loadRom = rom => load(rom, MEM_OFFSET_ROM)
+const loadFont = font => load(font, MEM_OFFSET_FONT)
+const loadBios = data => load(data, MEM_OFFSET_BIOS)
+
+loadFont([
+  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+  0x20, 0x60, 0x20, 0x20, 0x70, // 1
+  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+])
+
+// run 1 cycle
 const cycle = () => {
+
+  const prevPc = pc
 
   const co = memory[pc++]
   const de = memory[pc++]
@@ -70,23 +87,31 @@ const cycle = () => {
 
   if (ST > 0) {
     ST--
-    if (ST === 0)
-      console.log('BUZZ')
+    // if (ST === 0) {
+    //   buzz()
+    // }
   }
 
+  if (drawFlag) {
+    // renderScreen(gfx)
+    drawFlag = 0x0
+  }
+
+  console.log(`${pc}: 0x${opcode.toString(16)}`)
 }
 
-// operations
+// operation definitions
 
 const nop = () => {}
 
-const todo = () => {
-  throw new Error('Not implemented')
+const todo = (msg) => {
+  throw new Error(`Not implemented: opcode 0x${opcode.toString(16)}${msg ? ` (${msg})` : ''}`)
 }
 
 // CLS
 const cls = () => {
-  todo()
+  for (let i = 0; i < 64 * 32; i++)
+    gfx[i] = 0x0
 }
 
 // RET
@@ -127,7 +152,7 @@ const sne = () => {
 const se2 = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = opcode & 0x00f0
-  if (V[x] === kk)
+  if (V[x] === V[y])
     pc += 2
 }
 
@@ -153,28 +178,28 @@ const ld2 = () => {
 }
 
 // OR Vx, Vy
-const or => () => {
+const or = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = (opcode & 0x00f0) >> 4
   V[x] |= V[y]
 }
 
 // AND Vx, Vy
-const and => () => {
+const and = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = (opcode & 0x00f0) >> 4
   V[x] &= V[y]
 }
 
 // XOR Vx, Vy
-const xor => () => {
+const xor = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = (opcode & 0x00f0) >> 4
   V[x] ^= V[y]
 }
 
 // ADD Vx, Vy
-const add2 => () => {
+const add2 = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = (opcode & 0x00f0) >> 4
   V[x] += V[y]
@@ -182,7 +207,7 @@ const add2 => () => {
 }
 
 // SUB Vx, Vy
-const sub => () => {
+const sub = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = (opcode & 0x00f0) >> 4
   V[0xf] = V[x] > V[y] ? 1 : 0
@@ -190,7 +215,7 @@ const sub => () => {
 }
 
 // SHR Vx {, Vy}
-const shr => () => {
+const shr = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = (opcode & 0x00f0) >> 4
   V[0xf] = V[x] % 2
@@ -198,7 +223,7 @@ const shr => () => {
 }
 
 // SUBN Vx, Vy
-const subn => () => {
+const subn = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = (opcode & 0x00f0) >> 4
   V[0xf] = V[y] > V[x] ? 1 : 0
@@ -206,7 +231,7 @@ const subn => () => {
 }
 
 // SHL Vx {, Vy}
-const shl => () => {
+const shl = () => {
   const x = (opcode & 0x0f00) >> 8
   const y = (opcode & 0x00f0) >> 4
   V[0xf] = V[x] % 2
@@ -222,7 +247,7 @@ const sne2 = () => {
 }
 
 // LD I, addr
-const ld2 = () => {
+const ld3 = () => {
   I = opcode & 0x0fff
 }
 
@@ -259,7 +284,6 @@ const drw = () => {
     }
   }
   drawFlag = 0x1
-  pc += 2
 }
 
 // SKP Vx
@@ -302,37 +326,59 @@ const fadd = () => {
   I += V[x]
 }
 
+// LD Vx, K
+const kld = () => {
+  const x = (opcode & 0x0f00) >> 8
+  // WAIT FOR KEYPRESS + STORE VALUE in Vx
+  todo('Wait for keypress')
+}
+
 // LD F, Vx
-const fld = todo
+const fld = () => {
+  const x = (opcode & 0x0f00) >> 8
+  I = MEM_OFFSET_FONT + x * 5
+}
 
 // LD B, Vx
+const bld = () => {
+  const x = (opcode & 0x0f00) >> 8
+  memory[I] = Math.floor(V[x] / 100)
+  memory[I + 1] = Math.floor((V[x] / 10) % 10)
+  memory[I + 2] = Math.floor((V[x] % 100) % 10)
+}
 
 // LD [I], Vx
+const ild = () => {
+  const x = (opcode & 0x0f00) >> 8
+  for (let i = 0; i <= x; i++)
+    memory[I + i] = V[i]
+}
 
 // LD Vx, [I]
-
-const opTable = [
-  xzero, jp,  call, se,  sne, se2, ld, add,
-  xaret, sne2, ld2, jp2, rnd, drw, xkey, xfff
-]
+const ild2 = () => {
+  const x = (opcode & 0x0f00) >> 8
+  for (let i = 0; i <= x; i++)
+    V[i] = memory[I + i]
+}
 
 const xzero = () => {
   const op = zeroOpTable[opcode]
-  op && op() // ignore SYS (0x0NNN)
+  op ? op() : todo() // ignore SYS (0x0NNN)
 }
 
 const zeroOpTable = {
-  0x00e0: cls
+  0x0000: nop,
+  0x00e0: cls,
   0x00ee: ret
 }
 
 const xaret = () => {
   const op = arethmicOpTable[opcode & 0x000f]
-  op()
+  op ? op() : todo()
 }
 
 const arethmicOpTable = [
-  ld2, or, and, xor, add2, sub, shr,
+  ld3, or, and, xor, add2, sub, shr,
   subn, nop, nop, nop, nop, shl, nop
 ]
 
@@ -346,17 +392,22 @@ const xkey = () => {
 
 const xfff = () => {
   const op = fOpTable[opcode & 0x00ff]
-  op && op()
+  op ? op() : todo()
 }
 
 const fOpTable = {
   0x07: lddt,
-  0x0a: todo,
+  0x0a: kld,
   0x15: lddt2,
   0x18: ldst,
   0x1e: fadd,
-  0x29: todo,
-  0x33: todo,
-  0x55: todo,
-  0x65: todo
+  0x29: fld,
+  0x33: bld,
+  0x55: ild,
+  0x65: ild2
 }
+
+const opTable = [
+  xzero, jp,  call, se,  sne, se2, ld, add,
+  xaret, sne2, ld2, jp2, rnd, drw, xkey, xfff
+]

@@ -93,11 +93,11 @@ const cycle = () => {
   }
 
   if (drawFlag) {
-    // renderScreen(gfx)
+    renderScreen(gfx)
     drawFlag = 0x0
   }
 
-  console.log(`${pc}: 0x${opcode.toString(16)}`)
+  // console.log(`${pc}: 0x${opcode.toString(16)}`)
 }
 
 // operation definitions

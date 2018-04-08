@@ -12,7 +12,7 @@ function initScreen(canvas) {
 
   return function renderScreen(gfx) {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    for (let y = 0; y < 32; y++) {
+    for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const pix = gfx[x + width * y]
         ctx.fillStyle = [bgColor, fgColor][pix]

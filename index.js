@@ -70,7 +70,7 @@ loadFont([
 ])
 
 // run 1 cycle
-const cycle = () => {
+const cycle = (drawCb, audioCb) => {
 
   const prevPc = pc
 
@@ -88,12 +88,12 @@ const cycle = () => {
   if (ST > 0) {
     ST--
     if (ST === 0) {
-      buzz()
+      audioCb && audioCb()
     }
   }
 
   if (drawFlag) {
-    renderScreen(gfx)
+    drawCb && drawCb(gfx)
     drawFlag = 0x0
   }
 

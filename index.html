@@ -3,44 +3,16 @@
   <head>
     <meta charset="utf-8">
     <title>CHIP-8</title>
+    <script type="text/javascript" src="graphics.js"></script>
+    <script type="text/javascript" src="audio.js"></script>
     <script type="text/javascript" src="index.js"></script>
   </head>
   <body>
     <canvas id="cvs"></canvas>
     <script type="text/javascript">
-      const width = 64
-      const height = 32
-      const cellSize = 10
-      const bgColor = '#ccc'
-      const fgColor = '#a00'
       const canvas = document.getElementById('cvs')
-      const ctx = canvas.getContext('2d')
-      canvas.width = width * cellSize
-      canvas.height = height * cellSize
-
-      function renderScreen(gfx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        for (let y = 0; y < 32; y++) {
-          for (let x = 0; x < width; x++) {
-            const pix = gfx[x + width * y]
-            ctx.fillStyle = [bgColor, fgColor][pix]
-            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
-          }
-        }
-      }
-
-      const audioContext = window.AudioContext && new AudioContext || window.webkitAudioContext && new webkitAudioContext
-
-      function buzz() {
-        if (!audioCtx) {
-          return
-        }
-        const osc = audioCtx.createOscillator()
-        osc.connect(audioCtx.destination)
-        osc.type = "triangle"
-        osc.start()
-        setTimeout(() => osc.stop(), 100)
-      }
+      const draw = initScreen(canvas)
+      const buzz = initAudio()
 
       function loadGame(cb) {
         const fname = "./roms/pong"
@@ -62,7 +34,7 @@
         if (err)
           throw err
         const loop = setInterval(() => {
-          try { cycle() }
+          try { cycle(draw, buzz) }
           catch (err) {
             console.error(err)
             clearInterval(loop)

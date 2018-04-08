@@ -98,6 +98,8 @@ const cycle = (drawCb, audioCb) => {
   }
 
   // console.log(`${pc}: 0x${opcode.toString(16)}`)
+  if (pc === prevPc)
+    throw new Error(`Infinite loop: Stuck at instruction ${pc} (opcode 0x${opcode.toString(16)})`)
 }
 
 // operation definitions

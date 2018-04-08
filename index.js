@@ -87,9 +87,9 @@ const cycle = () => {
 
   if (ST > 0) {
     ST--
-    // if (ST === 0) {
-    //   buzz()
-    // }
+    if (ST === 0) {
+      buzz()
+    }
   }
 
   if (drawFlag) {

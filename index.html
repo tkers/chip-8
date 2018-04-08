@@ -29,6 +29,19 @@
         }
       }
 
+      const audioContext = window.AudioContext && new AudioContext || window.webkitAudioContext && new webkitAudioContext
+
+      function buzz() {
+        if (!audioCtx) {
+          return
+        }
+        const osc = audioCtx.createOscillator()
+        osc.connect(audioCtx.destination)
+        osc.type = "triangle"
+        osc.start()
+        setTimeout(() => osc.stop(), 100)
+      }
+
       function loadGame(cb) {
         const fname = "./roms/pong"
         const xhr = new XMLHttpRequest

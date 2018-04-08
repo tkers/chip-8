@@ -26,7 +26,13 @@
       loadGame(function (err) {
         if (err)
           throw err
-        setInterval(cycle, 60 / 1000)
+        const loop = setInterval(() => {
+          try { cycle() }
+          catch (err) {
+            console.error(err)
+            clearInterval(loop)
+          }
+        }, 60 / 1000)
       })
     </script>
   </body>

@@ -14,23 +14,16 @@
       const draw = initScreen(canvas)
       const buzz = initAudio()
 
-      function loadGame(cb) {
-        const fname = "./roms/pong"
-        const xhr = new XMLHttpRequest
-        xhr.open("GET", fname, true)
-        xhr.responseType = "arraybuffer"
-        xhr.onload = function () {
-          if (xhr.status !== 200) {
-            return cb(new Error(`Unable to load ROM. Status code ${xhr.status}`))
-          }
-          const rom = new Uint8Array(xhr.response)
-          loadRom(rom)
-          cb()
-        }
-        xhr.send()
+      function loadGame(fname, cb) {
+        fetch(fname)
+          .then(res => res.arrayBuffer())
+          .then(buf => new Uint8Array(buf))
+          .then(data => loadRom(data))
+          .then(() => cb())
+          .catch(err => cb(err))
       }
 
-      loadGame(function (err) {
+      loadGame("./roms/pong", err => {
         if (err)
           throw err
         const loop = setInterval(() => {

@@ -346,7 +346,7 @@ const kld = () => {
 // LD F, Vx
 const fld = () => {
   const x = (opcode & 0x0f00) >> 8
-  I = MEM_OFFSET_FONT + x * 5
+  I = MEM_OFFSET_FONT + V[x] * 5
 }
 
 // LD B, Vx

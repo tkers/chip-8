@@ -6,6 +6,7 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
     <script type="text/javascript" src="graphics.js"></script>
     <script type="text/javascript" src="audio.js"></script>
+    <script type="text/javascript" src="input.js"></script>
     <script type="text/javascript" src="chip.js"></script>
   </head>
   <body>
@@ -14,6 +15,7 @@
       const canvas = document.getElementById('cvs')
       const draw = initScreen(canvas)
       const buzz = initAudio()
+      initInput(setKeyPressed, setKeyReleased)
 
       function loadGame(fname, cb) {
         fetch(fname)

@@ -33,6 +33,14 @@ let gfx = Array(64 * 32).fill(0x0)
 // @TODO extract input logic elsewhere
 let keys = Array(16).fill(0x0)
 
+const setKeyPressed = x => {
+  keys[x] = 0x1
+}
+
+const setKeyReleased = x => {
+  keys[x] = 0x0
+}
+
 // load data into the memory
 const load = (data, offset = 0x0) => {
   const len = data.length

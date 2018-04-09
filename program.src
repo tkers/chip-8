@@ -36,7 +36,25 @@ define SE' $5 +xy0 emit ;
 define SNE $4 +xkk emit ;
 define LD $6 +xkk emit ;
 
+label: main
 
 
-Va $22 SE
-Va Vb SE'
+(
+define test create ;
+
+)
+
+define patch  ( offset newaddr --  )
+  offset -rot
+  swap seek
+  load $f000 & + emit
+  seek ;
+
+offset
+$0 jp
+
+$1 emit
+$2 emit
+$3 emit
+
+$1 patch

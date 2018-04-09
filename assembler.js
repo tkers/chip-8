@@ -1,4 +1,5 @@
 const output = []
+let pointer = 0
 
 const op2 = (fn) => (stack) => {
   const top = stack.pop()
@@ -19,15 +20,30 @@ const consumeUntil = (token, consume) => {
 const dictionary = {
   emit: (stack) => {
     const top = stack.pop()
-    output.push(top)
+    output[pointer] = top
+    pointer++
+  },
+  load: (stack) => {
+    stack.push(output[pointer])
   },
   '.s': (stack) => {
     console.log(stack)
+  },
+  offset: (stack) => {
+    stack.push(pointer)
+  },
+  seek: (stack) => {
+    pointer = stack.pop()
   },
   define: (stack, consume) => {
     const name = consume()
     const body = consumeUntil(';', consume)
     dictionary[name] = (stack) => runWords(body, stack)
+  },
+  'label:' : (stack, consume) => {
+    const label = consume()
+    const addr = output.length
+    dictionary[label] = () => stack.push(addr)
   },
   '(': (stack, consume) => {
     consumeUntil(')', consume)
@@ -57,11 +73,11 @@ const dictionary = {
 
 const runWords = (_words, stack = []) => {
   const words = _words.slice(0)
-  const consume = () => words.shift().toLowerCase()
+  const consume = () => words.shift()
   while (words.length > 0) {
     const word = consume()
-    if (word[0] === '$') {
-      stack.push(parseInt(word.slice(1), 16))
+    if (typeof word === 'number') {
+      stack.push(word)
     }
     else if (word in dictionary) {
       dictionary[word](stack, consume)
@@ -74,7 +90,12 @@ const runWords = (_words, stack = []) => {
 }
 
 const run = (input) => {
-  const words = input.trim().split(/[\s\n]+/)
+  const words = input
+    .trim()
+    .split(/[\s\n]+/)
+    .map(x => {
+      return (x[0] === '$') ? parseInt(x.slice(1), 16) : x.toLowerCase()
+    })
   return runWords(words)
 }
 

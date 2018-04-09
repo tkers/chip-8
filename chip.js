@@ -33,7 +33,16 @@ let gfx = Array(64 * 32).fill(0x0)
 // @TODO extract input logic elsewhere
 let keys = Array(16).fill(0x0)
 
+// internal flags for halting on LD Vx, K
+let awaitingKey = false
+let awaitingKeyReg = null
+
 const setKeyPressed = x => {
+  if (awaitingKey) {
+    V[awaitingKeyReg] = x
+    awaitingKey = false
+    awaitingKeyReg = null
+  }
   keys[x] = 0x1
 }
 
@@ -79,6 +88,10 @@ loadFont([
 
 // run 1 cycle
 const cycle = (drawCb, audioCb) => {
+
+  if (awaitingKey) {
+    return
+  }
 
   const prevPc = pc
 
@@ -316,8 +329,6 @@ const lddt = () => {
   V[x] = DT
 }
 
-// LD Vx, K
-
 // LD DT, Vx
 const lddt2 = () => {
   const x = (opcode & 0x0f00) >> 8
@@ -339,8 +350,8 @@ const fadd = () => {
 // LD Vx, K
 const kld = () => {
   const x = (opcode & 0x0f00) >> 8
-  // WAIT FOR KEYPRESS + STORE VALUE in Vx
-  todo('Wait for keypress')
+  awaitingKey = true
+  awaitingKeyReg = x
 }
 
 // LD F, Vx

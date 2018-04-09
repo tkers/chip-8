@@ -1,0 +1,42 @@
+define -rot rot rot ;
+
+define &nnn $0fff & ;
+define x swap $100 * ;
+define y swap $10 * ;
+define xkk x + ;
+define xy0 x y + ;
+
+define +xkk $1000 * -rot xkk + ;
+define +xy0 $1000 * -rot xy0 + ;
+
+( register definitions )
+define V0 $0 ;
+define V1 $1 ;
+define V2 $2 ;
+define V3 $3 ;
+define V4 $4 ;
+define V5 $5 ;
+define V6 $6 ;
+define V7 $7 ;
+define V8 $8 ;
+define V9 $9 ;
+define Va $a ;
+define Vb $b ;
+define Vc $c ;
+define Vd $d ;
+define Ve $e ;
+define Vf $f ;
+
+define CLS $00e0 emit ;
+define RET $00ee emit ;
+define JP &nnn $1000 + emit ;
+define CALL &nnn $2000 + emit ;
+define SE $3 +xkk emit ;
+define SE' $5 +xy0 emit ;
+define SNE $4 +xkk emit ;
+define LD $6 +xkk emit ;
+
+
+
+Va $22 SE
+Va Vb SE'

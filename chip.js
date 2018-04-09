@@ -388,8 +388,8 @@ const xaret = () => {
 }
 
 const arethmicOpTable = [
-  ld2, or, and, xor, add2, sub, shr,
-  subn, nop, nop, nop, nop, shl, nop
+  ld2, or, and, xor, add2, sub, shr, subn,
+  nop, nop, nop, nop, nop, nop, shl, nop
 ]
 
 const xkey = () => {

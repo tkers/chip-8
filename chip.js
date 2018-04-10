@@ -5,19 +5,19 @@ let opcode = 0x0000
 // 0x000 ... 0x1FF: interpreter
 // 0x050 ... 0x0A0: font set
 // 0x200 ... 0xFFF: program ROM and work RAM
-let memory = Array(4096).fill(0x00)
+let memory = new Uint8Array(4096).fill(0x00)
 
 // CPU registers (V0..V15 - 1 byte each)
-let V = Array(16).fill(0x00)
+let V = new Uint8Array(16).fill(0x00)
 
 // index register
-let I = 0x200 // @TODO sometimes breaks at 0x000
+let I = 0x000
 
 // program counter
 let pc = 0x200
 
 // stack and stack pointer
-let stack = Array(16).fill(0x000)
+let stack = new Uint16Array(16).fill(0x000)
 let sp = 0x0
 
 // draw flag indicates when redraw needs to happen
@@ -28,10 +28,10 @@ let DT = 0x00
 let ST = 0x00
 
 // @TODO extract display logic elsewhere
-let gfx = Array(64 * 32).fill(0x0)
+let gfx = new Uint8Array(64 * 32).fill(0x0)
 
 // @TODO extract input logic elsewhere
-let keys = Array(16).fill(0x0)
+let keys = new Uint8Array(16).fill(0x0)
 
 // internal flags for halting on LD Vx, K
 let awaitingKey = false

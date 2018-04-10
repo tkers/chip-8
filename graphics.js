@@ -2,8 +2,8 @@ function initScreen(canvas) {
   const width = 64
   const height = 32
   const cellSize = 10
-  const bgColor = '#ccc'
-  const fgColor = '#a00'
+  const bgColor = '#B6C6C4'
+  const fgColor = '#222825'
 
   const ctx = canvas.getContext('2d')
 

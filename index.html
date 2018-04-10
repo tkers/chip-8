@@ -8,35 +8,9 @@
     <script type="text/javascript" src="audio.js"></script>
     <script type="text/javascript" src="input.js"></script>
     <script type="text/javascript" src="chip.js"></script>
+    <script type="text/javascript" src="main.js"></script>
   </head>
   <body>
     <canvas id="cvs"></canvas>
-    <script type="text/javascript">
-      const canvas = document.getElementById('cvs')
-      const draw = initScreen(canvas)
-      const buzz = initAudio()
-      initInput(setKeyPressed, setKeyReleased)
-
-      function loadGame(fname, cb) {
-        fetch(fname)
-          .then(res => res.arrayBuffer())
-          .then(buf => new Uint8Array(buf))
-          .then(data => loadRom(data))
-          .then(() => cb())
-          .catch(err => cb(err))
-      }
-
-      loadGame("./roms/pong", err => {
-        if (err)
-          throw err
-        const loop = setInterval(() => {
-          try { cycle(draw, buzz) }
-          catch (err) {
-            console.error(err)
-            clearInterval(loop)
-          }
-        }, 60 / 1000)
-      })
-    </script>
   </body>
 </html>

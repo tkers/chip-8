@@ -10,13 +10,12 @@ function loadGame(fname, cb) {
 }
 
 function startChip(draw, buzz) {
-  const loop = setInterval(() => {
-    try { cycle(draw, buzz) }
-    catch (err) {
-      console.error(err)
-      clearInterval(loop)
-    }
-  }, 60 / 1000)
+  const loop = () => {
+    cycle(draw, buzz)
+    requestAnimationFrame(loop)
+  }
+
+  requestAnimationFrame(loop)
 }
 
 window.addEventListener('load', () => {

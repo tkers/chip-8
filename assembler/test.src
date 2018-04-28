@@ -1,0 +1,8 @@
+define splitshort dup $ff & swap $ff00 & $8 >> ;
+define emitshort splitshort emit emit ;
+
+define foo $1234 emit ;
+define emit emitshort ; ( should this change all definitions? or just bar? or not allowed? )
+define bar $1234 emit ;
+
+foo bar

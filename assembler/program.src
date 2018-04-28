@@ -1,0 +1,109 @@
+define -rot rot rot ;
+
+define &nnn $0fff & ;
+define x swap $100 * ;
+define y swap $10 * ;
+define xkk x + ;
+define xy0 x y + ;
+( define xyn y + x + ; )
+
+define +nnn ( nnn a -- $annn ) $1000 * + ;
+define +xkk ( x kk a -- $axkk ) $1000 * -rot xkk + ;
+( define +xyn ( x y n -- $axyn \) $1000 * -rot xyn + ; )
+define +xy0 ( x y a -- $axy0 ) $1000 * -rot xy0 + ;
+define 8xy0 ( x y -- $8xy0 ) $8000 -rot xy0 + ;
+
+( x y  a..c )
+
+( register definitions )
+define V0 $0 ;
+define V1 $1 ;
+define V2 $2 ;
+define V3 $3 ;
+define V4 $4 ;
+define V5 $5 ;
+define V6 $6 ;
+define V7 $7 ;
+define V8 $8 ;
+define V9 $9 ;
+define Va $a ;
+define Vb $b ;
+define Vc $c ;
+define Vd $d ;
+define Ve $e ;
+define Vf $f ;
+
+define noop ;
+
+define CLS $00e0 emit ;         ( 00E0 - CLS )
+define RET $00ee emit ;         ( 00EE - RET )
+define SYS noop ;               ( 0nnn - SYS )
+define JP &nnn $1000 + emit ;   ( 1nnn - JP addr )
+define CALL &nnn $2000 + emit ; ( 2nnn - CALL addr )
+define SE $3 +xkk emit ;        ( 3xkk - SE Vx, byte )
+define SNE $4 +xkk emit ;       ( 4xkk - SNE Vx, byte )
+define SE' $5 +xy0 emit ;       ( 5xy0 - SE Vx, Vy )
+define LD $6 +xkk emit ;        ( 6xkk - LD Vx, byte )
+define ADD $7 +xkk emit ;       ( 7xkk - ADD Vx, byte )
+define LD' $8 +xy0 emit ;       ( 8xy0 - LD Vx, Vy )
+define OR 8xy0 $1 + emit ;      ( 8xy1 - OR Vx, Vy )
+define AND 8xy0 $2 + emit ;     ( 8xy2 - AND Vx, Vy )
+define XOR 8xy0 $3 + emit ;     ( 8xy3 - XOR Vx, Vy )
+define ADD' 8xy0 $4 + emit ;    ( 8xy4 - ADD Vx, Vy )
+define SUB 8xy0 $5 + emit ;     ( 8xy5 - SUB Vx, Vy )
+define SHR 8xy0 $6 + emit ;     ( 8xy6 - SHR Vx {, Vy} )
+define SUBN 8xy0 $7 + emit ;    ( 8xy7 - SUBN Vx, Vy )
+define SHL 8xy0 $E + emit ;     ( 8xyE - SHL Vx {, Vy} )
+define SNE<V,V> $9 +xy0 emit ;  ( 9xy0 - SNE Vx, Vy )
+define LD<I> $A +nnn emit ;     ( Annn - LD I, addr )
+define JP<V0> $B +nnn emit ;    ( Bnnn - JP V0, addr )
+define RND $C +xkk emit ;       ( Cxkk - RND Vx, byte )
+define DRW $D +xyn emit ;       ( Dxyn - DRW Vx, Vy, nibble )
+define SKP noop ;               ( Ex9E - SKP Vx )
+define SKNP noop ;              ( ExA1 - SKNP Vx )
+define LD<V,DT> noop ;          ( Fx07 - LD Vx, DT )
+define LD<V,K> noop ;           ( Fx0A - LD Vx, K )
+define LD<DT,V> noop ;          ( Fx15 - LD DT, Vx )
+define LD<ST> noop ;            ( Fx18 - LD ST, Vx )
+define ADD<I> noop ;            ( Fx1E - ADD I, Vx )
+define LD<F> noop ;             ( Fx29 - LD F, Vx )
+define LD<B> noop ;             ( Fx33 - LD B, Vx )
+define LD<[I],V> noop ;         ( Fx55 - LD [I], Vx )
+define LD<V,[I]> noop ;         ( Fx65 - LD Vx, [I] )
+
+
+create ( compile time -- create dict entry )
+
+define const
+  create ( create new word -- const name )
+  , ; ( place number from stack in dict )
+
+define var
+  create ( create new word -- var name )
+  does> @ ;
+
+$13a const PI
+var test $1 :=
+
+label: main
+
+
+(
+define test create ;
+
+)
+
+define patch  ( offset newaddr --  )
+  offset -rot
+  swap seek
+  load $f000 & + emit
+  seek ;
+
+offset
+$0 jp
+
+$1 emit
+$2 emit
+$3 emit
+
+$1 patch

@@ -1,0 +1,102 @@
+define -rot rot rot ;
+
+define &nnn $0fff & ;
+define x swap $100 * ;
+define y swap $10 * ;
+define xkk x + ;
+define xy0 x y + ;
+( define xyn y + x + ; )
+
+define +nnn ( nnn a -- $annn ) $1000 * + ;
+define +xkk ( x kk a -- $axkk ) $1000 * -rot xkk + ;
+( define +xyn ( x y n -- $axyn \) $1000 * -rot xyn + ; )
+define +xy0 ( x y a -- $axy0 ) $1000 * -rot xy0 + ;
+define 8xy0 ( x y -- $8xy0 ) $8000 -rot xy0 + ;
+
+
+
+: define sd: ;
+: end ['] ;  ;
+
+
+
+( x y  a..c )
+
+( register definitions )
+define V0 $0 ;
+define V1 $1 ;
+define V2 $2 ;
+define V3 $3 ;
+define V4 $4 ;
+define V5 $5 ;
+define V6 $6 ;
+define V7 $7 ;
+define V8 $8 ;
+define V9 $9 ;
+define Va $a ;
+define Vb $b ;
+define Vc $c ;
+define Vd $d ;
+define Ve $e ;
+define Vf $f ;
+
+
+define splitshort ( nn -- n n ) dup $ff & swap $ff00 & $8 >> ;
+define emitshort ( nn -- ) splitshort emit emit ;
+
+( define emit emitshort ; )
+
+define NOP $0000 emitshort ;         ( 0000 - NOP )
+define CLS $00e0 emitshort ;         ( 00E0 - CLS )
+define RET $00ee emitshort ;         ( 00EE - RET )
+define SYS nop ;                     ( 0nnn - SYS )
+define JP &nnn $1000 + emitshort ;   ( 1nnn - JP addr )
+define CALL &nnn $2000 + emitshort ; ( 2nnn - CALL addr )
+define SE $3 +xkk emitshort ;        ( 3xkk - SE Vx, byte )
+define SNE $4 +xkk emitshort ;       ( 4xkk - SNE Vx, byte )
+define SE' $5 +xy0 emitshort ;       ( 5xy0 - SE Vx, Vy )
+define LD $6 +xkk emitshort ;        ( 6xkk - LD Vx, byte )
+define ADD $7 +xkk emitshort ;       ( 7xkk - ADD Vx, byte )
+define LD' $8 +xy0 emitshort ;       ( 8xy0 - LD Vx, Vy )
+define OR 8xy0 $1 + emitshort ;      ( 8xy1 - OR Vx, Vy )
+define AND 8xy0 $2 + emitshort ;     ( 8xy2 - AND Vx, Vy )
+define XOR 8xy0 $3 + emitshort ;     ( 8xy3 - XOR Vx, Vy )
+define ADD' 8xy0 $4 + emitshort ;    ( 8xy4 - ADD Vx, Vy )
+define SUB 8xy0 $5 + emitshort ;     ( 8xy5 - SUB Vx, Vy )
+define SHR 8xy0 $6 + emitshort ;     ( 8xy6 - SHR Vx {, Vy} )
+define SUBN 8xy0 $7 + emitshort ;    ( 8xy7 - SUBN Vx, Vy )
+define SHL 8xy0 $E + emitshort ;     ( 8xyE - SHL Vx {, Vy} )
+define SNE<V,V> $9 +xy0 emitshort ;  ( 9xy0 - SNE Vx, Vy )
+define LD<I> $A +nnn emitshort ;     ( Annn - LD I, addr )
+define JP<V0> $B +nnn emitshort ;    ( Bnnn - JP V0, addr )
+define RND $C +xkk emitshort ;       ( Cxkk - RND Vx, byte )
+define DRW $D +xyn emitshort ;       ( Dxyn - DRW Vx, Vy, nibble )
+define SKP nop ;                     ( Ex9E - SKP Vx )
+define SKNP nop ;                    ( ExA1 - SKNP Vx )
+define LD<V,DT> nop ;                ( Fx07 - LD Vx, DT )
+define LD<V,K> nop ;                 ( Fx0A - LD Vx, K )
+define LD<DT,V> nop ;                ( Fx15 - LD DT, Vx )
+define LD<ST> nop ;                  ( Fx18 - LD ST, Vx )
+define ADD<I> nop ;                  ( Fx1E - ADD I, Vx )
+define LD<F> nop ;                   ( Fx29 - LD F, Vx )
+define LD<B> nop ;                   ( Fx33 - LD B, Vx )
+define LD<[I],V> nop ;               ( Fx55 - LD [I], Vx )
+define LD<V,[I]> nop ;               ( Fx65 - LD Vx, [I] )
+
+define const CREATE , DOES> @ ;
+define answer $4 $2 ( do some magic ) swap [ $1 $1 $2 + $4 $3 + $3 swap ] $10 * + emit  ;
+( 42 const answer )
+
+( create , does> @ )
+
+answer answer
+
+see answer
+
+CLS
+$A $BC SE
+$D $E SE'
+$abc JP
+RET
+
+.s

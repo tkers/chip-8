@@ -1,4 +1,4 @@
-const { formatByte, formatByteArray } = require('./utils')
+const { formatStack } = require('./utils')
 
 const output = []
 let outputPointer = 0
@@ -26,6 +26,8 @@ const consumeUntil = (token, consume) => {
 
 const immediate = {
   ';': () => {
+    // const fns = dictionary[dictPointer]
+    // dictionary[dictPointer] = (_s, _c) => fns.forEach(fn => fn(_s, _c))
     mode = INTERPRET_MODE
     dictPointer = null
   },
@@ -37,12 +39,23 @@ const immediate = {
   },
   'DOES>': () => {
     // @TODO no f'ing clue ??
+    // add RET to DP + mark run-time start
   }
 }
 
 const dictionary = {
   ']': () => {
     mode = COMPILE_MODE
+  },
+  '\'': (stack, consume) => {
+    const name = consume()
+    stack.push(immediate[name] || dictionary[name])
+  },
+  'execute': (stack, consume) => {
+    const fn = stack.pop()
+    if (!(fn instanceof Function))
+      throw new Error(`Invalid xt: ${fn}`)
+    fn(stack, consume)
   },
   emit: (stack) => {
     const top = stack.pop()
@@ -53,7 +66,7 @@ const dictionary = {
     stack.push(output[outputPointer])
   },
   '.s': (stack) => {
-    console.log(formatByteArray(stack))
+    console.log(formatStack(stack))
   },
   offset: (stack) => {
     stack.push(outputPointer)
@@ -63,7 +76,8 @@ const dictionary = {
   },
   see: (stack, consume) => {
     const name = consume()
-    console.log(':', name, dictionary[name].map(x => (typeof x === 'number') ? formatByte(x) : x).join(' '), ';')
+    const def = immediate[name] || dictionary[name]
+    console.log(':', name, def instanceof Function ? `[core:${name}]` : def.map(x => x.name).join(' '), ';')
   },
   create: (stack, consume) => {
     dictPointer = consume()
@@ -137,7 +151,10 @@ const dictionary = {
   '|': op2((a, b) => a | b)
 }
 
-const interpret = (_words, stack = []) => {
+const execute = (def, input, stack) => {}
+
+let _stack = []
+const interpret = (_words, stack = _stack) => {
   const words = _words.slice(0)
   const consume = () => words.shift()
   while (words.length > 0) {
@@ -150,8 +167,10 @@ const interpret = (_words, stack = []) => {
         const def = immediate[word] || dictionary[word]
         if (def instanceof Function)
           def(stack, consume)
-        else
-          interpret(def, stack)
+        else {
+          def.forEach(fn => fn(stack, consume))
+          // interpret(def, stack)
+        }
       }
       else {
         // console.warn(`[!] Ignoring undefined word: ${word}`)
@@ -163,12 +182,25 @@ const interpret = (_words, stack = []) => {
       if (word in immediate) {
         immediate[word](stack, consume)
       }
+      // else {
+      //   dictionary[dictPointer].push(word)
+      // }
+      else if (typeof word === 'number') {
+        dictionary[dictPointer].push(makePush(word))
+      }
       else {
-        dictionary[dictPointer].push(word)
+        dictionary[dictPointer].push(dictionary[word])
       }
     }
   }
+  _stack = stack
   return output
+}
+
+const makePush = x => {
+  const fn = stack => stack.push(x)
+  fn.name = `push_${x}`
+  return fn
 }
 
 module.exports = interpret
